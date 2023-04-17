@@ -17,7 +17,7 @@ public class DataBase {
 
     private DataBase(){
         Random random = new Random();
-        for(int i = 0; i < 20; i++){
+        for(int i = 0; i < 100; i++){
             Note note = new Note(i, i + " note", random.nextInt(3));
             notes.add(note);
         }
