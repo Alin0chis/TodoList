@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -18,13 +20,14 @@ public class AddNoteActivity extends AppCompatActivity {
     private RadioButton radioButtonMedium;
     private Button buttonSave;
 
-    private DataBase dataBase = DataBase.getInstance();
+    private NoteDataBase noteDataBase;
+    private Handler handler = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_note);
-
+        noteDataBase = NoteDataBase.getInstance(getApplication());
         initView();
 
         buttonSave.setOnClickListener(new View.OnClickListener() {
@@ -45,12 +48,21 @@ public class AddNoteActivity extends AppCompatActivity {
     private void saveNote() {
         String text = editTextNote.getText().toString().trim();
         int priority = getPriority();
-        int id = dataBase.getNotes().size();
 
-        Note note = new Note(id, text, priority);
-        dataBase.add(note);
-
-        finish();
+        Note note = new Note(text, priority);
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                noteDataBase.notesDao().add(note);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        finish();
+                    }
+                });
+            }
+        });
+        thread.start();
     }
 
     private int getPriority(){
