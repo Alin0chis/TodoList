@@ -27,15 +27,15 @@ public class MainActivity extends AppCompatActivity {
     private FloatingActionButton buttonAddNote;
     private NotesAdapter notesAdapter;
 
-    private NoteDataBase noteDataBase;
+    private MainViewModel viewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        viewModel = new MainViewModel(getApplication());
         initViews();
 
-        noteDataBase = NoteDataBase.getInstance(getApplication());
         notesAdapter = new NotesAdapter();
         /*notesAdapter.setOnNoteClickListener(new NotesAdapter.OnNoteClickListener() {
             @Override
@@ -43,7 +43,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });*/
         recyclerViewNotes.setAdapter(notesAdapter);
-        noteDataBase.notesDao().getNotes().observe(this, new Observer<List<Note>>() {
+
+        viewModel.getNotes().observe(this, new Observer<List<Note>>() {
             @Override
             public void onChanged(List<Note> notes) {
                 notesAdapter.setNotes(notes);
@@ -71,14 +72,7 @@ public class MainActivity extends AppCompatActivity {
                     ) {
                         int position = viewHolder.getAdapterPosition();
                         Note note = notesAdapter.getNotes().get(position);
-
-                        Thread thread = new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                noteDataBase.notesDao().remove(note.getId());
-                            }
-                        });
-                        thread.start();
+                        viewModel.remove(note);
                     }
                 }
         );
@@ -97,6 +91,4 @@ public class MainActivity extends AppCompatActivity {
         recyclerViewNotes = findViewById(R.id.recyclerViewNotes);
         buttonAddNote = findViewById(R.id.buttonAddNote);
     }
-
-
 }
